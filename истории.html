@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>Истории</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #E0F7FA; /* пастельный светлый фон */
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  #messages {
+    background-color: #FFFFFF; /* белый для читаемости */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+    max-height: 70vh;
+  }
+
+  #inputLabel {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #00BFFF; /* голубой */
+    color: #fff;
+    padding: 15px 25px;
+    border-radius: 25px;
+    font-size: 18px;
+    box-shadow: 0 4px 8px rgba(25, 25, 112, 0.2);
+    cursor: pointer;
+    transition: all 0.4s ease;
+    /* Добавим эффект тени при наведении */
+  }
+
+  /* Анимация при наведении */
+  #inputLabel:hover {
+    background-color: #00CED1; /* темный голубой */
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  #storyInput {
+    display: none;
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 600px;
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid #00CED1; /* бирюзовый */
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #storyInput:focus {
+    border-color: #191970; /* темно-синий */
+  }
+
+  /* Стиль сообщений */
+  #messages p {
+    background-color: #F0F8FF; /* светло-голубой */
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin: 8px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div id="messages"></div>
+<div id="inputLabel">Введите свою историю</div>
+<input type="text" id="storyInput" placeholder="Введите текст..." />
+
+<script>
+  const messagesDiv = document.getElementById('messages');
+  const inputLabel = document.getElementById('inputLabel');
+  const storyInput = document.getElementById('storyInput');
+
+  function loadMessages() {
+    const data = JSON.parse(localStorage.getItem('stories')) || [];
+    messagesDiv.innerHTML = '';
+    data.forEach(item => {
+      const p = document.createElement('p');
+      p.textContent = item.text;
+      messagesDiv.appendChild(p);
+    });
+  }
+
+  inputLabel.onclick = () => {
+    storyInput.style.display = 'block';
+    storyInput.focus();
+  };
+
+  storyInput.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const text = storyInput.value.trim();
+      if (text !== '') {
+        let data = JSON.parse(localStorage.getItem('stories')) || [];
+        data.push({ text: text, time: Date.now() });
+        localStorage.setItem('stories', JSON.stringify(data));
+        const p = document.createElement('p');
+        p.textContent = text;
+        messagesDiv.appendChild(p);
+        storyInput.value = '';
+        storyInput.style.display = 'none';
+      }
+    }
+  };
+
+  function cleanOldMessages() {
+    const data = JSON.parse(localStorage.getItem('stories')) || [];
+    const sixHours = 6 * 60 * 60 * 1000;
+    const now = Date.now();
+    const freshData = data.filter(item => (now - item.time) < sixHours);
+    localStorage.setItem('stories', JSON.stringify(freshData));
+    loadMessages();
+  }
+
+  loadMessages();
+  cleanOldMessages();
+
+  setInterval(cleanOldMessages, 60 * 60 * 1000);
+</script>
+
+</body>
+</html>
